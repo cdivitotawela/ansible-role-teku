@@ -10,8 +10,6 @@ teku_download_url: "https://bintray.com/consensys/pegasys-repo/download_file?fil
 teku_base_dir: "/opt/teku"
 teku_install_dir: "{{ teku_base_dir }}/teku-{{ teku_version }}"
 teku_current_dir: "{{ teku_base_dir }}/current"
-teku_data_dir: "{{ teku_base_dir }}/data"
-teku_data_beacon_dir: "{{ teku_data_dir }}/dir"
 teku_config_dir: "/etc/teku"
 teku_log_dir: "/var/log/teku"
 teku_log4j_config_file: ""
@@ -68,7 +66,15 @@ teku_metrics_enabled: "True"
 teku_metrics_interface: 0.0.0.0
 teku_metrics_host_allowlist: ["*"]
 teku_metrics_port: 8008
-teku_metrics_categories: ["BEACON","LIBP2P","NETWORK","EVENTBUS","JVM","PROCESS","STORAGE","VALIDATOR"]
+teku_metrics_categories:
+  - "BEACON"
+  - "LIBP2P"
+  - "NETWORK"
+  - "EVENTBUS"
+  - "JVM"
+  - "PROCESS"
+  - "STORAGE"
+  - "VALIDATOR"
 
 teku_data_path: "/data"
 teku_data_storage_mode: "prune"
@@ -79,11 +85,15 @@ teku_beacon_rest_api_enabled: "True"
 teku_beacon_rest_api_interface: "127.0.0.1"
 teku_beacon_rest_api_host_allowlist: ["*"]
 
-teku_cmdline_args: ""
-teku_env_opts: ""
+teku_cmdline_args: []
 
-teku_validator_key_files: []
-teku_validator_key_password_files: []
+# This is the internal variable. This should not be set directly
+teku_env_opts_config: "{{ teku_env_opts | default([]) }}"
+
+# Validator key configuration. Supports following formats
+# key and secret directories /opt/teku/keys:/opt/teku/secrets
+# Files /opt/teku/keys/key-file.json:/opt/teku/keys/psecret.txt
+teku_validator_keys: []
 
 # internal state to maintain idempotency
 teku_state_updates: []
@@ -95,7 +105,8 @@ teku_sub_command: ''
 teku_log_file: "{{ teku_log_dir }}/teku.log"
 teku_config_file: "{{ teku_config_dir }}/teku.yml"
 
-# determine whether to run as standalone validator client. Default is not to run standalone validator
+# Determine whether to run as standalone validator client.
+# Default is not to run standalone validator
 teku_standalone_validator: False
 
 # Configuration for monolith teku client
@@ -110,10 +121,12 @@ teku_validator_service_file: "{{ teku_systemd_dir }}/teku-validator.service"
 teku_validator_log_file: "{{ teku_log_dir }}/teku-validator.log"
 teku_validator_config_file: "{{ teku_config_dir }}/teku-validator.yml"
 teku_validator_metrics_port: '8009'
+teku_validator_env_opts: "{{ teku_env_opts }}"
 
 # Configuration for standalone beacon client
-teku_beacon_service_name: 'teku'
-teku_beacon_service_file: "{{ teku_systemd_dir }}/teku.service"
-teku_beacon_log_file: "{{ teku_log_dir }}/teku.log"
-teku_beacon_config_file: "{{ teku_config_dir }}/teku.yml"
+teku_beacon_service_name: 'teku-beacon'
+teku_beacon_service_file: "{{ teku_systemd_dir }}/teku-beacon.service"
+teku_beacon_log_file: "{{ teku_log_dir }}/teku-beacon.log"
+teku_beacon_config_file: "{{ teku_config_dir }}/teku-becon.yml"
 teku_beacon_metrics_port: '8008'
+teku_beacon_env_opts: "{{ teku_env_opts }}"

@@ -13,7 +13,6 @@ Ansible role that will install, configure and runs [Teku](https://github.com/Peg
 
 ### Supported Platforms
 ```
-* MacOS
 * Debian
 * Ubuntu
 * Redhat(CentOS/Fedora)
@@ -36,7 +35,6 @@ All variables which can be overridden are stored in [defaults/main.yml](defaults
 | `teku_download_url` | https://bintray.com/consensys/pegasys-repo/download_file?file_path=teku-{{ teku_version }}.tar.gz | The download tar.gz file used. You can use this if you need to retrieve teku from a custom location such as an internal repository. |
 | `teku_install_dir` | /opt/teku | Path to install to  |
 | `teku_config_dir` | /etc/teku | Path for default configuration |
-| `teku_data_dir` | /opt/teku/data | Path for data directory|
 | `teku_log_dir` | /var/log/teku | Path for logs directory |
 | `teku_log_filename` | {{ `teku_log_dir` }}/teku.log | Path containing the location (relative or absolute) and the log filename | 
 | `teku_profile_file` | /etc/profile.d/teku-path.sh | Path to allow loading teku into the system PATH |
@@ -80,7 +78,9 @@ All variables which can be overridden are stored in [defaults/main.yml](defaults
 | `teku_beacon_rest_api_interface` | 127.0.0.1 | Interface for the REST API service |
 | `teku_beacon_rest_api_host_allowlist` | ["*"] | Host allowlist for for the REST API service |
 | `teku_cmdline_args` | [] | |
-| `teku_env_opts` | [] | |
+| `teku_env_opts` | [] | TEKU_OPTS parameters |
+| `teku_validator_env_opts` | {{ `teku_env_opts` }} | TEKU_OPTS parameters for standalone validator process |
+| `teku_beacon_env_opts` | {{ `teku_env_opts` }} | TEKU_OPTS parameters for standalone beacon process |
 | `teku_standalone_validator` | False | Run validator in standalone mode |
 
 
@@ -109,10 +109,9 @@ List of variables which are not defined with default values in ansible role. How
 
 ### Standalone Mode
 
-It is possible to configure Teku to run in either monolith mode (both beacon and validator run in same process) or standalone mode(beacon and validator run in its own process).
-Standalone mode runs beacon service its own process and validator service in its own process. Systemd service name `teku` is used for beacon service
-and `teku-validator` is used for validator service when run in standalone mode. Ansible role defaults to run Teku in monolith mode and behaviour can be controlled with the
-variable `teku_standalone_validator=False/True`.
+It is possible to configure Teku to run in either monolith mode (both beacon and validator run in same process) or standalone mode(beacon and validator run in its own process). When run
+in monolith mode systemd service name is `teku`. In standalone mode beacon process service name is `teku-beacon` and validator process name is `teku-validator`
+Ansible role defaults to run Teku in monolith mode and behaviour can be controlled with the variable `teku_standalone_validator=False/True`.
 
 ### Example Playbook
 
@@ -123,7 +122,7 @@ ansible-galaxy install pegasyseng.teku
 ```
 
 Create a requirements.yml with the following:
-Replace `x.y.z` below with the version you would like to use from the teku [releases](https://github.com/PegaSysEng/teku/releases) page
+Replace `x.y.z` below with the version you would like to use from the teku [releases](https://github.com/ConsenSys/teku/releases) page
 ```
 ---
 - hosts: localhost
@@ -146,7 +145,7 @@ ansible-playbook -v /path/to/requirements.yml
 2. Install via github
 
 ```
-ansible-galaxy install git+https://github.com/pegasyseng/ansible-role-teku.git
+ansible-galaxy install git+https://github.com/consensys/ansible-role-teku.git
 ```
 
 Create a requirements.yml with the following:
@@ -177,4 +176,4 @@ Apache
 
 ### Author Information
 
-PegaSysEng, 2020
+ConsenSys, 2020

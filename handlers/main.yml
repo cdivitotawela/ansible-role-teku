@@ -1,0 +1,30 @@
+---
+
+- name: reload_systemd_configs
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: restart_teku_monolith
+  service:
+    name: "{{ teku_monolith_service_name }}"
+    state: restarted
+    enabled: true
+  become: true
+  when: "not teku_standalone_validator"
+
+- name: restart_teku_beacon
+  service:
+    name: "{{ teku_beacon_service_name }}"
+    state: restarted
+    enabled: true
+  become: true
+  when: "teku_standalone_validator"
+
+- name: restart_teku_validator
+  service:
+    name: "{{ teku_validator_service_name }}"
+    state: restarted
+    enabled: true
+  become: true
+  when: "teku_standalone_validator"

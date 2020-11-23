@@ -1,0 +1,34 @@
+---
+
+# Remove monolith configuration file
+- name: Config Standalone | Remove monolith configuration files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ teku_monolith_config_file }}"
+  become: true
+
+# Configure standalone configuration files
+# Beacon config file should not have any validator key configuration
+# Explicitly set teku_validator_keys to empty list to avoid configuration
+- name: Config Standalone | Standalone beacon configuration file
+  template:
+    src: "{{ teku_config_template }}"
+    dest: "{{ teku_beacon_config_file }}"
+    owner: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+  become: true
+  vars:
+    teku_metrics_port: "{{ teku_beacon_metrics_port }}"
+    teku_validator_keys: []
+
+- name: Config Standalone | Standalone validator configuration file
+  template:
+    src: "{{ teku_config_template }}"
+    dest: "{{ teku_validator_config_file }}"
+    owner: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+  become: true
+  vars:
+    teku_metrics_port: "{{ teku_validator_metrics_port }}"

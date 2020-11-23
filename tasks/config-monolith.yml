@@ -1,0 +1,23 @@
+---
+
+# Remove standalone beacon and validator configuration files if system has
+# been configured to run as standalone mode
+- name: Config Monolith | Remove standalone configuration files
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ teku_validator_config_file }}"
+    - "{{ teku_beacon_config_file }}"
+  become: true
+
+# Configure monolith configuration file
+- name: Config Monolith | Generate monolith configuration file
+  template:
+    src: "{{ teku_config_template }}"
+    dest: "{{ teku_monolith_config_file }}"
+    owner: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+  become: true
+  notify:
+    - restart_teku_monolith

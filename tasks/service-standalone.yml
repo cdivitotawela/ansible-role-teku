@@ -1,0 +1,76 @@
+---
+
+- name: Service Standalone | Check teku monolith systemd file exist
+  stat:
+    path: "{{ teku_monolith_service_file }}"
+  register: teku_monolith_file_stat
+
+- name: Service Standalone | Change from monolith to standalone
+  block:
+  - name: Service Standalone | Stop monolith service
+    systemd:
+      name: "{{ teku_monolith_service_name }}"
+      state: stopped
+    become: True
+
+  - name: Service Standalone | Remove monolith service file
+    file:
+      path: "{{ teku_monolith_service_file }}"
+      state: absent
+    become: True
+  when:
+    - "teku_monolith_file_stat.stat.exists"
+
+- name: Service Standalone | Create Teku beacon systemd service
+  template:
+    src: "{{ teku_systemd_template }}"
+    dest: "{{ teku_beacon_service_file }}"
+    owner: "root"
+    group: "root"
+  become: true
+  when:
+    - teku_managed_service
+  vars:
+    teku_log_file: "{{ teku_beacon_log_file }}"
+    teku_config_file: "{{ teku_beacon_config_file }}"
+    teku_env_opts_config: "{{ teku_beacon_env_opts }}"
+  notify:
+    - reload_systemd_configs
+    - restart_teku_beacon
+
+- name: Service Standalone | Create Teku validator systemd service
+  template:
+    src: "{{ teku_systemd_template }}"
+    dest: "{{ teku_validator_service_file }}"
+    owner: "root"
+    group: "root"
+  become: true
+  when:
+    - teku_managed_service
+  vars:
+    teku_sub_command: 'validator-client'
+    teku_log_file: "{{ teku_validator_log_file }}"
+    teku_config_file: "{{ teku_validator_config_file }}"
+    teku_env_opts_config: "{{ teku_validator_env_opts }}"
+  notify:
+    - reload_systemd_configs
+    - restart_teku_validator
+
+- name: Service Standalone | Reload systemd config
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Service Standalone | Start teku standalone becaon
+  service:
+    name: "{{ teku_beacon_service_name }}"
+    state: started
+    enabled: True
+  become: True
+
+- name: Service Standalone | Start teku standalone validator
+  service:
+    name: "{{ teku_validator_service_name }}"
+    state: started
+    enabled: True
+  become: True

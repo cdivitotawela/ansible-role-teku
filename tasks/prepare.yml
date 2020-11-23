@@ -1,0 +1,80 @@
+---
+
+- name: Prepare | Ensure we have sane configuration
+  fail:
+    msg: You must set "teku_version" for this role to run
+  when: teku_version is not defined
+
+- name: Prepare | Ensure Teku group exists
+  group:
+    name: "{{ teku_group }}"
+    state: present
+  become: true
+
+- name: Prepare | Create Teku user
+  user:
+    comment:  Teku client user
+    name: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+  become: true
+
+- name: Prepare | Create base directory
+  file:
+    path: "{{ teku_base_dir }}"
+    state: directory
+    owner: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+  become: true
+
+- name: Prepare | Create install directory
+  file:
+    path: "{{ teku_install_dir }}"
+    state: directory
+    owner: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+  become: true
+
+- name: Prepare | Create config directory
+  file:
+    path: "{{ teku_config_dir }}"
+    state: directory
+    owner: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+    recurse: yes
+  become: true
+
+- name: Prepare | Create log directory
+  file:
+    path: "{{ teku_log_dir }}"
+    state: directory
+    owner: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+  become: true
+
+- name: Prepare | Create data directory
+  file:
+    path: "{{ teku_data_path }}"
+    state: directory
+    owner: "{{ teku_user }}"
+    group: "{{ teku_group }}"
+    recurse: yes
+  become: true
+
+- name: Prepare | Check java installed
+  block:
+  - name: Run java command
+    shell: 'java -version'
+    become: True
+    become_user: "{{ teku_user }}"
+    register: java_version_output
+    ignore_errors: True
+
+  - name: Prepare | Java is not installed
+    fail:
+      msg: "Teku requires java installed and accessible by user {{ teku_user }}"
+    when: "java_version_output.rc != 0"
+
+- name: Prepare | Check standalone validater systemd file exist
+  stat:
+    path: "{{ teku_validator_service_file }}"
+  register: teku_standalone_validator_file_stat
