@@ -25,12 +25,6 @@
         state: stopped
       become: true
       when: "teku_standalone_validator_file_stat.stat.exists"
-      register: stop_standalone_beacon
-
-    - name: Set updated optionally to trigger a systemd restart at the end
-      set_fact:
-        teku_state_updates: "{{ teku_state_updates + ['teku.service_stopped'] }}"
-      when: stop_standalone_beacon is changed
 
     - name: Remove standalone validator systemd file
       file:
@@ -47,12 +41,8 @@
       become: true
       when:
         - teku_managed_service
-      register: systemd_file
-
-    - name: Set updated optionally to trigger a systemd restart at the end
-      set_fact:
-        teku_state_updates: "{{ teku_state_updates + ['teku.systemd_file'] }}"
-      when: systemd_file is changed
+      notify:
+        - reload_systemd_configs
 
     - name: Reload systemd to reread configs
       systemd:
@@ -67,15 +57,6 @@
         enabled: true
       become: true
       when:
-        - teku_managed_service
-
-    - name: Restart Teku service
-      systemd:
-        name: "{{ teku_monolith_service_name }}"
-        state: "{{ teku_systemd_state }}"
-      become: true
-      when:
-        - teku_state_updates|length > 0
         - teku_managed_service
 
   when:
@@ -109,16 +90,12 @@
         group: "root"
       become: true
       when:
-        - teku_managed_service
-      register: systemd_file_beacon
+        - "teku_managed_service"
       vars:
         teku_log_file: "{{ teku_beacon_log_file }}"
         teku_config_file: "{{ teku_beacon_config_file }}"
-
-    - name: Set updated optionally to trigger a systemd beacon restart at the end
-      set_fact:
-        teku_state_updates_beacon: "{{ teku_state_updates_beacon + ['teku.systemd'] }}"
-      when: systemd_file_beacon is changed
+      notify:
+        - restart_teku
 
     - name: Create Teku validator systemd service
       template:
@@ -128,17 +105,14 @@
         group: "root"
       become: true
       when:
-        - teku_managed_service
+        - "teku_managed_service"
       register: systemd_file_validator
       vars:
         teku_sub_command: 'validator-client'
         teku_log_file: "{{ teku_validator_log_file }}"
         teku_config_file: "{{ teku_validator_config_file }}"
-
-    - name: Set updated optionally to trigger a systemd validator restart at the end
-      set_fact:
-        teku_state_updates_validator: "{{ teku_state_updates_validator + ['teku.systemd'] }}"
-      when: systemd_file_validator is changed
+      notify:
+        - restart_teku_validator
 
     - name: Reload systemd to reread configs
       systemd:
@@ -155,15 +129,6 @@
       when:
         - teku_managed_service
 
-    - name: Restart Teku service - beacon
-      systemd:
-        name: "{{ teku_beacon_service_name }}"
-        state: "{{ teku_systemd_state }}"
-      become: true
-      when:
-        - teku_state_updates_beacon|length > 0
-        - teku_managed_service
-
     - name: Enable and start Teku service - validator
       systemd:
         name: "{{ teku_validator_service_name }}"
@@ -171,20 +136,11 @@
         enabled: true
       become: true
       when:
-        - teku_managed_service
-
-    - name: Restart Teku service - validator
-      systemd:
-        name: "{{ teku_validator_service_name }}"
-        state: "{{ teku_systemd_state }}"
-      become: true
-      when:
-        - teku_state_updates_validator|length > 0
-        - teku_managed_service
+        - "teku_managed_service"
 
   when:
     - "ansible_os_family != 'Darwin'"
-    - teku_standalone_validator
+    - "teku_standalone_validator"
 
 
 # Darwin only

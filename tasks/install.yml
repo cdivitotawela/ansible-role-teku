@@ -54,12 +54,9 @@
       - --strip-components
       - '1'
   become: true
-  register: extract_src
-
-- name: Set updated optionally to trigger a systemd restart at the end
-  set_fact:
-    teku_state_updates: "{{ teku_state_updates + ['teku.install_dir'] }}"
-  when: extract_src is changed
+  notify:
+    - restart_teku
+    - restart_teku_validator
 
 # will throw error the first time you install since the service isnt present
 - name: Stop Teku systemd service if running

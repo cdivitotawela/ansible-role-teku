@@ -1,0 +1,19 @@
+---
+
+- name: reload_systemd_configs
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: restart_teku
+  service:
+    name: teku
+    state: restarted
+  become: true
+
+- name: restart_teku_validator
+  service:
+    name: teku
+    state: restarted
+  become: true
+  when: "teku_standalone_validator"
