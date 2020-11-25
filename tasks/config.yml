@@ -25,7 +25,7 @@
     become: true
     notify:
       - restart_teku
-  when: "not teku_standalone_validator"
+  when: "not teku_standalone_validator | bool"
 
 - name: Generate config file - standalone
   block:
@@ -56,7 +56,7 @@
       vars:
         teku_metrics_port: "{{ teku_validator_metrics_port }}"
 
-  when: "teku_standalone_validator"
+  when: "teku_standalone_validator | bool"
 
 # TODO: add this in when Teku supports the data dir option - see the pre_install file for now
 #- name: Create data directory
