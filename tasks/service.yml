@@ -48,7 +48,6 @@
       systemd:
         daemon_reload: yes
       become: true
-      when: systemd_file is changed
 
     - name: Enable and start Teku service
       systemd:
@@ -106,7 +105,6 @@
       become: true
       when:
         - "teku_managed_service"
-      register: systemd_file_validator
       vars:
         teku_sub_command: 'validator-client'
         teku_log_file: "{{ teku_validator_log_file }}"
@@ -118,7 +116,6 @@
       systemd:
         daemon_reload: yes
       become: true
-      when: "systemd_file_beacon is changed or systemd_file_validator is changed"
 
     - name: Enable and start Teku service - beacon
       systemd:
